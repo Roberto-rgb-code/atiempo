@@ -1,0 +1,50 @@
+/* Fuentes del manual de identidad */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  /* Colores del manual de identidad */
+  --mentol: #D8F9A0;
+  --negro: #000000;
+  --blanco: #FFFFFF;
+  --gris-pardo: #A99C93;
+  --humo: #3C3A36;
+  --marfil-suave: #E6DCD0;
+}
+
+body {
+  font-family: 'Manrope', sans-serif;
+  line-height: 1.6;
+}
+
+/* Gradiente de marca */
+.gradient-brand {
+  background: linear-gradient(135deg, var(--mentol) 0%, var(--gris-pardo) 50%, var(--humo) 100%);
+}
+
+/* Animaciones suaves */
+.transition-all {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Efectos hover */
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+/* Animación para el widget de WhatsApp */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
