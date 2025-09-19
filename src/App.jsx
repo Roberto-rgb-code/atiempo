@@ -54,7 +54,6 @@ export default function App() {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
 
   const handleShowAuth = (mode = 'login') => {
-    // Si ya hay sesión, ir directo al dashboard
     if (user) {
       navigate('/dashboard', { replace: true });
       return;
@@ -79,7 +78,6 @@ export default function App() {
 
   const handleLogout = async () => {
     await logout();
-    // Redirige al home tras logout
     navigate('/', { replace: true });
   };
 
@@ -88,13 +86,17 @@ export default function App() {
     if (user) setShowAuthModal(false);
   }, [user]);
 
-  // 🔥 Redirección: cuando hay sesión y estamos en rutas públicas, manda a /dashboard
+  // 👇 Detecta callback de Firebase y CUALQUIER ruta pública. Si hay user, manda a /dashboard
   useEffect(() => {
-    if (isLoading) return; // espera a que Firebase determine el estado real
+    if (isLoading) return;          // espera a que Firebase determine el estado real
     if (!user) return;
 
-    const publicPaths = ['/', '/login', '/register'];
-    if (publicPaths.includes(location.pathname)) {
+    const path = location.pathname || '/';
+    const isAuthCallback = path.startsWith('/__/auth'); // ← clave para prod
+    const isPublic = path === '/' || path === '/login' || path === '/register' || isAuthCallback;
+
+    if (isPublic || path !== '/dashboard') {
+      // Si ya hay sesión y NO estás exactamente en /dashboard, navega allí
       navigate('/dashboard', { replace: true });
     }
   }, [user, isLoading, location.pathname, navigate]);
@@ -118,8 +120,6 @@ export default function App() {
   // Callback para cerrar modal + navegar al dashboard (lo usan los formularios)
   const handleAuthSuccess = () => {
     setShowAuthModal(false);
-    // La redirección principal la hace el efecto cuando `user` existe,
-    // pero esto ayuda si el router ya está listo:
     navigate('/dashboard', { replace: true });
   };
 
@@ -134,7 +134,7 @@ export default function App() {
 
       <div className="flex-1">
         <Routes>
-          {/* Rutas públicas (si hay sesión, PublicOnlyRoute también redirige a /dashboard) */}
+          {/* Rutas públicas */}
           <Route element={<PublicOnlyRoute />}>
             <Route path="/" element={<Home onShowAuth={handleShowAuth} />} />
             <Route path="/login" element={<LoginPage />} />

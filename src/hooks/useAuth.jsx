@@ -19,13 +19,12 @@ export function AuthProvider({ children }) {
   const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1) Resolver posibles resultados del flujo por redirect
+    // Resuelve el posible resultado del redirect (en prod)
     getRedirectResult(auth).catch((err) => {
-      // Útil para depurar en producción
       console.error('[Google Redirect Error]', err?.code, err?.message);
     });
 
-    // 2) Registrar listener y limpiar correctamente
+    // Listener de sesión
     const unsub = onAuthStateChanged(auth, (fbUser) => {
       setUser(fbUser || null);
       setLoading(false);
@@ -34,7 +33,6 @@ export function AuthProvider({ children }) {
     return () => unsub();
   }, []);
 
-  // --- Registro con correo/contraseña ---
   async function register({ email, password, displayName }) {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     if (displayName) {
@@ -43,25 +41,23 @@ export function AuthProvider({ children }) {
     return cred.user;
   }
 
-  // --- Login con correo/contraseña ---
   async function login({ email, password }) {
     const cred = await signInWithEmailAndPassword(auth, email, password);
     return cred.user;
   }
 
-  // --- Login con Google ---
   async function loginWithGoogle() {
     const isLocal =
       typeof window !== 'undefined' &&
       (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
 
-    // En producción (Vercel), usa redirect (más confiable)
     if (!isLocal) {
+      // Producción: redirect (más confiable)
       await signInWithRedirect(auth, googleProvider);
       return;
     }
 
-    // En local: intenta popup; si falla por políticas, cae a redirect
+    // Local: intenta popup; si falla, cae a redirect
     try {
       const cred = await signInWithPopup(auth, googleProvider);
       return cred.user;
@@ -81,7 +77,6 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // --- Logout ---
   async function logout() {
     await signOut(auth);
   }
