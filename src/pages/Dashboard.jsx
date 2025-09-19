@@ -5,6 +5,7 @@ import {
   LogOut, Search, ArrowUpDown, BadgeDollarSign, CheckCircle2
 } from 'lucide-react';
 
+
 const MX = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
 
 const RAW_PRODUCTS = [
