@@ -21,21 +21,16 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let unsub = () => {};
 
-    // 1) Primero resolvemos si venimos de redirect (producción)
-    //    y luego montamos el listener. Así evitamos "falsos negativos"
-    //    donde user todavía no está disponible.
     (async () => {
       try {
         await getRedirectResult(auth);
-        // Si el redirect trae user, onAuthStateChanged lo notificará abajo.
+        // si hubo redirect, Firebase dará el user en onAuthStateChanged
       } catch (err) {
-        // Log útil en prod para diagnósticos
         console.error('[Google Redirect Error]', err?.code, err?.message);
       } finally {
-        // 2) Listener de estado de auth
         unsub = onAuthStateChanged(auth, (fbUser) => {
           setUser(fbUser || null);
-          setLoading(false); // soltamos loading solo cuando ya tenemos el estado real
+          setLoading(false);
         });
       }
     })();
@@ -43,31 +38,41 @@ export function AuthProvider({ children }) {
     return () => unsub();
   }, []);
 
+  // --- Registro con correo/contraseña ---
   async function register({ email, password, displayName }) {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    if (displayName) await updateProfile(cred.user, { displayName });
+    if (displayName) {
+      await updateProfile(cred.user, { displayName });
+    }
+    // 👇 fallback fuerte
+    window.location.assign('/dashboard');
     return cred.user;
   }
 
+  // --- Login con correo/contraseña ---
   async function login({ email, password }) {
     const cred = await signInWithEmailAndPassword(auth, email, password);
+    // 👇 fallback fuerte
+    window.location.assign('/dashboard');
     return cred.user;
   }
 
+  // --- Login con Google ---
   async function loginWithGoogle() {
-    // En producción (Vercel), usa redirect por fiabilidad.
     const isLocal =
       typeof window !== 'undefined' &&
       (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
 
     if (!isLocal) {
+      // en producción: redirect
       await signInWithRedirect(auth, googleProvider);
-      return; // La navegación continúa cuando Firebase vuelve del redirect
+      return;
     }
 
-    // En local, intenta popup y cae a redirect si falla
     try {
       const cred = await signInWithPopup(auth, googleProvider);
+      // 👇 fallback fuerte
+      window.location.assign('/dashboard');
       return cred.user;
     } catch (err) {
       console.error('[Google Popup Error]', err?.code, err?.message);
@@ -85,8 +90,11 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // --- Logout ---
   async function logout() {
     await signOut(auth);
+    // 👇 manda directo al home
+    window.location.assign('/');
   }
 
   const value = useMemo(
