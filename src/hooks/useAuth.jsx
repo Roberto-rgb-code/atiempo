@@ -19,14 +19,19 @@ export function AuthProvider({ children }) {
   const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Si venimos de un redirect, resuélvelo al montar
-    getRedirectResult(auth).finally(() => {
-      const unsub = onAuthStateChanged(auth, (fbUser) => {
-        setUser(fbUser);
-        setLoading(false);
-      });
-      return () => unsub();
+    // 1) Registrar listener inmediatamente y limpiar correctamente
+    const unsub = onAuthStateChanged(auth, (fbUser) => {
+      setUser(fbUser);
+      setLoading(false);
     });
+
+    // 2) Resolver posibles resultados del flujo por redirect (producción)
+    getRedirectResult(auth).catch((err) => {
+      // Útil para depurar en producción
+      console.error('[Google Redirect Error]', err?.code, err?.message);
+    });
+
+    return () => unsub();
   }, []);
 
   async function register({ email, password, displayName }) {
@@ -41,11 +46,22 @@ export function AuthProvider({ children }) {
   }
 
   async function loginWithGoogle() {
+    // En producción (Vercel), usa redirect por fiabilidad.
+    const isLocal =
+      typeof window !== 'undefined' &&
+      (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
+
+    if (!isLocal) {
+      await signInWithRedirect(auth, googleProvider);
+      return; // La app continuará cuando vuelva del redirect
+    }
+
+    // En local, intenta popup y cae a redirect si falla
     try {
       const cred = await signInWithPopup(auth, googleProvider);
       return cred.user;
     } catch (err) {
-      // Fallback a redirect en casos típicos
+      console.error('[Google Popup Error]', err?.code, err?.message);
       const fallbackCodes = new Set([
         'auth/popup-blocked',
         'auth/popup-closed-by-user',
@@ -54,7 +70,7 @@ export function AuthProvider({ children }) {
       ]);
       if (fallbackCodes.has(err?.code)) {
         await signInWithRedirect(auth, googleProvider);
-        return; // la navegación continúa tras volver del redirect
+        return;
       }
       throw err;
     }
