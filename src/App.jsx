@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
-// Hook de Auth (Firebase)
+// Hook de Auth
 import { useAuth } from './hooks/useAuth';
 
 // Layout
@@ -19,7 +19,7 @@ import ContactSection from './components/sections/ContactSection';
 import WhatsAppWidget from './components/ui/WhatsAppWidget';
 import Modal from './components/ui/Modal';
 
-// Formularios (dentro del modal)
+// Formularios (se usan dentro del modal)
 import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
 
@@ -45,28 +45,29 @@ function Home({ onShowAuth }) {
 }
 
 export default function App() {
-  const { user, isLoading, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const location = useLocation();
 
-  // Modal de autenticación (para abrir desde la landing)
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
 
-  const handleShowAuth = (mode = 'login') => {
-    if (user) {
-      navigate('/dashboard', { replace: true });
-      return;
+  // 🔑 Cuando cambia la ruta, si estamos en dashboard, cierra el modal
+  useEffect(() => {
+    if (location.pathname === '/dashboard') {
+      setShowAuthModal(false);
     }
+  }, [location.pathname]);
+
+  const handleShowAuth = (mode = 'login') => {
     setAuthMode(mode);
     setShowAuthModal(true);
   };
 
   const handleCloseAuth = () => setShowAuthModal(false);
+
   const switchToLogin = () => setAuthMode('login');
   const switchToRegister = () => setAuthMode('register');
 
-  // Props de compatibilidad para el Navbar
   const isLoggedIn = !!user;
   const currentUser = user
     ? {
@@ -78,49 +79,6 @@ export default function App() {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/', { replace: true });
-  };
-
-  // Cierra el modal en cuanto detectamos usuario autenticado
-  useEffect(() => {
-    if (user) setShowAuthModal(false);
-  }, [user]);
-
-  // 👇 Detecta callback de Firebase y CUALQUIER ruta pública. Si hay user, manda a /dashboard
-  useEffect(() => {
-    if (isLoading) return;          // espera a que Firebase determine el estado real
-    if (!user) return;
-
-    const path = location.pathname || '/';
-    const isAuthCallback = path.startsWith('/__/auth'); // ← clave para prod
-    const isPublic = path === '/' || path === '/login' || path === '/register' || isAuthCallback;
-
-    if (isPublic || path !== '/dashboard') {
-      // Si ya hay sesión y NO estás exactamente en /dashboard, navega allí
-      navigate('/dashboard', { replace: true });
-    }
-  }, [user, isLoading, location.pathname, navigate]);
-
-  // Solo mostrar modal en "/" y si no hay sesión
-  const isOnHome = location.pathname === '/';
-  const shouldRenderAuthModal = showAuthModal && isOnHome && !user;
-
-  // Bloquear scroll con modal abierto (mejor UX)
-  useEffect(() => {
-    if (shouldRenderAuthModal) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [shouldRenderAuthModal]);
-
-  // Callback para cerrar modal + navegar al dashboard (lo usan los formularios)
-  const handleAuthSuccess = () => {
-    setShowAuthModal(false);
-    navigate('/dashboard', { replace: true });
   };
 
   return (
@@ -141,7 +99,7 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
           </Route>
 
-          {/* Rutas protegidas */}
+          {/* Rutas privadas */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
           </Route>
@@ -154,27 +112,19 @@ export default function App() {
       <Footer />
       <WhatsAppWidget />
 
-      {/* Modal de autenticación: solo en "/" y si no hay sesión */}
-      {shouldRenderAuthModal && (
-        <Modal
-          isOpen={true}
-          onClose={handleCloseAuth}
-          title={authMode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
-          size="md"
-        >
-          {authMode === 'login' ? (
-            <LoginForm
-              onSwitchToRegister={switchToRegister}
-              onAuthSuccess={handleAuthSuccess}
-            />
-          ) : (
-            <RegisterForm
-              onSwitchToLogin={switchToLogin}
-              onAuthSuccess={handleAuthSuccess}
-            />
-          )}
-        </Modal>
-      )}
+      {/* Modal de autenticación */}
+      <Modal
+        isOpen={showAuthModal}
+        onClose={handleCloseAuth}
+        title={authMode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
+        size="md"
+      >
+        {authMode === 'login' ? (
+          <LoginForm onSwitchToRegister={switchToRegister} />
+        ) : (
+          <RegisterForm onSwitchToLogin={switchToLogin} />
+        )}
+      </Modal>
     </div>
   );
 }
