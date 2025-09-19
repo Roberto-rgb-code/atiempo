@@ -45,15 +45,16 @@ function Home({ onShowAuth }) {
 }
 
 export default function App() {
-  const { user, logout } = useAuth();
+  const { user, isLoading, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Modal de autenticación
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
 
   const handleShowAuth = (mode = 'login') => {
-    // Si ya estás logeado y piden abrir auth, ir directo a dashboard
+    // Si ya hay sesión, ir directo al dashboard
     if (user) {
       navigate('/dashboard', { replace: true });
       return;
@@ -77,8 +78,8 @@ export default function App() {
     : null;
 
   const handleLogout = async () => {
+    // Tu useAuth ya hace window.location.assign('/'), aquí basta llamarlo
     await logout();
-    navigate('/', { replace: true }); // redirige al home tras logout
   };
 
   // Cierra el modal en cuanto detectamos usuario autenticado
@@ -88,12 +89,13 @@ export default function App() {
 
   // 🔥 Redirección fuerte: si hay usuario y estamos en rutas públicas, manda a /dashboard
   useEffect(() => {
+    if (isLoading) return; // espera a que Firebase determine el estado
     if (!user) return;
     const publicPaths = ['/', '/login', '/register'];
     if (publicPaths.includes(location.pathname)) {
       navigate('/dashboard', { replace: true });
     }
-  }, [user, location.pathname, navigate]);
+  }, [user, isLoading, location.pathname, navigate]);
 
   // Solo mostrar modal en "/" y si no hay sesión
   const isOnHome = location.pathname === '/';
@@ -114,6 +116,7 @@ export default function App() {
   // callback para cerrar modal + navegar al dashboard (lo usan los formularios)
   const handleAuthSuccess = () => {
     setShowAuthModal(false);
+    // Tu useAuth ya fuerza window.location.assign('/dashboard'), esto es “belt & suspenders”
     navigate('/dashboard', { replace: true });
   };
 
@@ -128,7 +131,7 @@ export default function App() {
 
       <div className="flex-1">
         <Routes>
-          {/* Rutas públicas (si hay sesión, PublicOnlyRoute también redirige a /dashboard) */}
+          {/* Rutas públicas (si hay sesión, PublicOnlyRoute también empuja a /dashboard) */}
           <Route element={<PublicOnlyRoute />}>
             <Route path="/" element={<Home onShowAuth={handleShowAuth} />} />
             <Route path="/login" element={<LoginPage />} />
