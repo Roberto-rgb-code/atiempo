@@ -19,17 +19,26 @@ export function AuthProvider({ children }) {
   const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1) Registrar listener inmediatamente y limpiar correctamente
-    const unsub = onAuthStateChanged(auth, (fbUser) => {
-      setUser(fbUser);
-      setLoading(false);
-    });
+    let unsub = () => {};
 
-    // 2) Resolver posibles resultados del flujo por redirect (producción)
-    getRedirectResult(auth).catch((err) => {
-      // Útil para depurar en producción
-      console.error('[Google Redirect Error]', err?.code, err?.message);
-    });
+    // 1) Primero resolvemos si venimos de redirect (producción)
+    //    y luego montamos el listener. Así evitamos "falsos negativos"
+    //    donde user todavía no está disponible.
+    (async () => {
+      try {
+        await getRedirectResult(auth);
+        // Si el redirect trae user, onAuthStateChanged lo notificará abajo.
+      } catch (err) {
+        // Log útil en prod para diagnósticos
+        console.error('[Google Redirect Error]', err?.code, err?.message);
+      } finally {
+        // 2) Listener de estado de auth
+        unsub = onAuthStateChanged(auth, (fbUser) => {
+          setUser(fbUser || null);
+          setLoading(false); // soltamos loading solo cuando ya tenemos el estado real
+        });
+      }
+    })();
 
     return () => unsub();
   }, []);
@@ -53,7 +62,7 @@ export function AuthProvider({ children }) {
 
     if (!isLocal) {
       await signInWithRedirect(auth, googleProvider);
-      return; // La app continuará cuando vuelva del redirect
+      return; // La navegación continúa cuando Firebase vuelve del redirect
     }
 
     // En local, intenta popup y cae a redirect si falla
