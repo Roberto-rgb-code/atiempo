@@ -6,8 +6,26 @@ const Navbar = ({ isLoggedIn, currentUser, onShowAuth, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  const toggleUserMenu = () => setIsUserMenuOpen(!isUserMenuOpen);
+  const toggleMenu = () => setIsMenuOpen((v) => !v);
+  const toggleUserMenu = () => setIsUserMenuOpen((v) => !v);
+
+  const openLogin = () => {
+    setIsMenuOpen(false);
+    setIsUserMenuOpen(false);
+    onShowAuth('login');
+  };
+
+  const openRegister = () => {
+    setIsMenuOpen(false);
+    setIsUserMenuOpen(false);
+    onShowAuth('register');
+  };
+
+  const handleLogout = async () => {
+    setIsMenuOpen(false);
+    setIsUserMenuOpen(false);
+    await onLogout?.();
+  };
 
   return (
     <nav className="bg-white shadow-sm relative z-50 border-b border-gray-100">
@@ -50,13 +68,14 @@ const Navbar = ({ isLoggedIn, currentUser, onShowAuth, onLogout }) => {
             {isLoggedIn ? (
               <div className="relative">
                 <button
+                  type="button"
                   onClick={toggleUserMenu}
                   className="flex items-center space-x-2 text-gray-700 hover:text-black transition-colors"
                 >
                   <User size={20} />
                   <span className="font-medium">{currentUser?.name}</span>
                 </button>
-                
+
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border">
                     <div className="py-1">
@@ -70,7 +89,8 @@ const Navbar = ({ isLoggedIn, currentUser, onShowAuth, onLogout }) => {
                         Configuración
                       </a>
                       <button
-                        onClick={onLogout}
+                        type="button"
+                        onClick={handleLogout}
                         className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                       >
                         <LogOut size={16} className="mr-2" />
@@ -83,13 +103,14 @@ const Navbar = ({ isLoggedIn, currentUser, onShowAuth, onLogout }) => {
             ) : (
               <div className="flex items-center space-x-3">
                 <button
-                  onClick={() => onShowAuth('login')}
+                  type="button"
+                  onClick={openLogin}
                   className="text-gray-700 hover:text-black font-medium transition-colors px-4 py-2"
                 >
                   Iniciar Sesión
                 </button>
-                <Button 
-                  onClick={() => onShowAuth('register')} 
+                <Button
+                  onClick={openRegister}
                   variant="primary"
                   size="md"
                 >
@@ -102,6 +123,7 @@ const Navbar = ({ isLoggedIn, currentUser, onShowAuth, onLogout }) => {
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
+              type="button"
               onClick={toggleMenu}
               className="text-gray-700 hover:text-black transition-colors"
             >
@@ -144,7 +166,7 @@ const Navbar = ({ isLoggedIn, currentUser, onShowAuth, onLogout }) => {
               >
                 Contacto
               </a>
-              
+
               {isLoggedIn ? (
                 <div className="pt-4 border-t">
                   <div className="px-3 py-2 text-sm text-gray-500">
@@ -154,7 +176,8 @@ const Navbar = ({ isLoggedIn, currentUser, onShowAuth, onLogout }) => {
                     Mi Perfil
                   </a>
                   <button
-                    onClick={onLogout}
+                    type="button"
+                    onClick={handleLogout}
                     className="flex items-center w-full px-3 py-2 text-red-600 hover:text-red-800"
                   >
                     <LogOut size={16} className="mr-2" />
@@ -164,14 +187,15 @@ const Navbar = ({ isLoggedIn, currentUser, onShowAuth, onLogout }) => {
               ) : (
                 <div className="pt-4 border-t space-y-3">
                   <button
-                    onClick={() => onShowAuth('login')}
+                    type="button"
+                    onClick={openLogin}
                     className="w-full text-left px-3 py-2 text-gray-700 hover:text-black font-medium"
                   >
                     Iniciar Sesión
                   </button>
-                  <Button 
-                    onClick={() => onShowAuth('register')} 
-                    variant="primary" 
+                  <Button
+                    onClick={openRegister}
+                    variant="primary"
                     className="w-full mx-3"
                     size="md"
                   >

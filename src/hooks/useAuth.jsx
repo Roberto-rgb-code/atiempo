@@ -1,78 +1,79 @@
-import { useState, useEffect } from 'react';
+// src/hooks/useAuth.jsx
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { auth, googleProvider } from '../lib/firebase';
+import {
+  onAuthStateChanged,
+  signOut,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+} from 'firebase/auth';
 
-const useAuth = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+const AuthContext = createContext(null);
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const user = localStorage.getItem('atiempo_user');
-      if (user) {
-        const userData = JSON.parse(user);
-        setCurrentUser(userData);
-        setIsLoggedIn(true);
-      }
-    } catch (error) {
-      console.error('Error loading user data:', error);
-      localStorage.removeItem('atiempo_user');
-    } finally {
-      setLoading(false);
-    }
+    // Si venimos de un redirect, resuélvelo al montar
+    getRedirectResult(auth).finally(() => {
+      const unsub = onAuthStateChanged(auth, (fbUser) => {
+        setUser(fbUser);
+        setLoading(false);
+      });
+      return () => unsub();
+    });
   }, []);
 
-  const login = (userData) => {
+  async function register({ email, password, displayName }) {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    if (displayName) await updateProfile(cred.user, { displayName });
+    return cred.user;
+  }
+
+  async function login({ email, password }) {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    return cred.user;
+  }
+
+  async function loginWithGoogle() {
     try {
-      setCurrentUser(userData);
-      setIsLoggedIn(true);
-      localStorage.setItem('atiempo_user', JSON.stringify(userData));
-      return { success: true };
-    } catch (error) {
-      console.error('Login error:', error);
-      return { success: false, error: 'Error al iniciar sesión' };
+      const cred = await signInWithPopup(auth, googleProvider);
+      return cred.user;
+    } catch (err) {
+      // Fallback a redirect en casos típicos
+      const fallbackCodes = new Set([
+        'auth/popup-blocked',
+        'auth/popup-closed-by-user',
+        'auth/cancelled-popup-request',
+        'auth/operation-not-supported-in-this-environment',
+      ]);
+      if (fallbackCodes.has(err?.code)) {
+        await signInWithRedirect(auth, googleProvider);
+        return; // la navegación continúa tras volver del redirect
+      }
+      throw err;
     }
-  };
+  }
 
-  const register = (userData) => {
-    try {
-      const user = {
-        id: Date.now(),
-        name: userData.name,
-        email: userData.email,
-        company: userData.company,
-        createdAt: new Date().toISOString()
-      };
-      
-      setCurrentUser(user);
-      setIsLoggedIn(true);
-      localStorage.setItem('atiempo_user', JSON.stringify(user));
-      return { success: true };
-    } catch (error) {
-      console.error('Register error:', error);
-      return { success: false, error: 'Error al registrarse' };
-    }
-  };
+  async function logout() {
+    await signOut(auth);
+  }
 
-  const logout = () => {
-    try {
-      setIsLoggedIn(false);
-      setCurrentUser(null);
-      localStorage.removeItem('atiempo_user');
-      return { success: true };
-    } catch (error) {
-      console.error('Logout error:', error);
-      return { success: false, error: 'Error al cerrar sesión' };
-    }
-  };
+  const value = useMemo(
+    () => ({ user, isLoading, register, login, loginWithGoogle, logout }),
+    [user, isLoading]
+  );
 
-  return {
-    isLoggedIn,
-    currentUser,
-    loading,
-    login,
-    register,
-    logout
-  };
-};
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
 
-export default useAuth;
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within <AuthProvider>');
+  return ctx;
+}
