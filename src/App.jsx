@@ -53,7 +53,7 @@ export default function App() {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
 
   const handleShowAuth = (mode = 'login') => {
-    // si ya estás logeado y piden abrir auth, mejor ir directo al dashboard
+    // Si ya estás logeado y piden abrir auth, ir directo a dashboard
     if (user) {
       navigate('/dashboard', { replace: true });
       return;
@@ -81,18 +81,25 @@ export default function App() {
     navigate('/', { replace: true }); // redirige al home tras logout
   };
 
-  // 1) Cierra el modal en cuanto detectamos usuario autenticado
+  // Cierra el modal en cuanto detectamos usuario autenticado
   useEffect(() => {
-    if (user) {
-      setShowAuthModal(false);
-    }
+    if (user) setShowAuthModal(false);
   }, [user]);
 
-  // 2) No mostrar el modal fuera de la landing (solo en "/")
+  // 🔥 Redirección fuerte: si hay usuario y estamos en rutas públicas, manda a /dashboard
+  useEffect(() => {
+    if (!user) return;
+    const publicPaths = ['/', '/login', '/register'];
+    if (publicPaths.includes(location.pathname)) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, location.pathname, navigate]);
+
+  // Solo mostrar modal en "/" y si no hay sesión
   const isOnHome = location.pathname === '/';
   const shouldRenderAuthModal = showAuthModal && isOnHome && !user;
 
-  // 3) Bloqueo/restore del scroll cuando el modal está abierto (mejor UX)
+  // Bloquear scroll con modal abierto (mejor UX)
   useEffect(() => {
     if (shouldRenderAuthModal) {
       document.body.style.overflow = 'hidden';
@@ -121,7 +128,7 @@ export default function App() {
 
       <div className="flex-1">
         <Routes>
-          {/* Rutas públicas (si hay sesión, redirige a /dashboard) */}
+          {/* Rutas públicas (si hay sesión, PublicOnlyRoute también redirige a /dashboard) */}
           <Route element={<PublicOnlyRoute />}>
             <Route path="/" element={<Home onShowAuth={handleShowAuth} />} />
             <Route path="/login" element={<LoginPage />} />
@@ -152,12 +159,12 @@ export default function App() {
           {authMode === 'login' ? (
             <LoginForm
               onSwitchToRegister={switchToRegister}
-              onAuthSuccess={handleAuthSuccess} // 👈 cierre + navigate
+              onAuthSuccess={handleAuthSuccess}
             />
           ) : (
             <RegisterForm
               onSwitchToLogin={switchToLogin}
-              onAuthSuccess={handleAuthSuccess} // 👈 cierre + navigate
+              onAuthSuccess={handleAuthSuccess}
             />
           )}
         </Modal>
