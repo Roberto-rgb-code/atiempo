@@ -13,16 +13,18 @@ import {
 } from 'firebase/auth';
 
 const AuthContext = createContext(null);
-const POST_AUTH_KEY = 'postAuthRedirect';
-const DEFAULT_REDIRECT = '/dashboard';
 
-function setPostAuthRedirect(path = DEFAULT_REDIRECT) {
-  try {
-    sessionStorage.setItem(POST_AUTH_KEY, path);
-  } catch {}
+// Usaremos HashRouter, así que los redirects deben ir a rutas con hash:
+const DASHBOARD_HASH = '#/dashboard';
+const HOME_HASH = '#/';
+
+const POST_AUTH_KEY = 'postAuthRedirectHash';
+
+function setPostAuthRedirectHash(hash = DASHBOARD_HASH) {
+  try { sessionStorage.setItem(POST_AUTH_KEY, hash); } catch {}
 }
 
-function consumePostAuthRedirect() {
+function consumePostAuthRedirectHash() {
   try {
     const v = sessionStorage.getItem(POST_AUTH_KEY);
     if (v) sessionStorage.removeItem(POST_AUTH_KEY);
@@ -32,16 +34,26 @@ function consumePostAuthRedirect() {
   }
 }
 
+// Helpers de redirección con hash (no dependen del Router)
+function goToHash(hash) {
+  try {
+    if (window.location.hash !== hash) {
+      window.location.hash = hash;           // no recarga; navega dentro del SPA
+    } else {
+      // Si ya estás en el mismo hash, forzamos un replace para “refrescar” el estado
+      window.location.replace(`${window.location.pathname}${hash}`);
+    }
+  } catch {}
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
     let unsub = () => {};
-
     (async () => {
       try {
-        // Si venimos de signInWithRedirect, resuélvelo (ignora si no aplica)
         await getRedirectResult(auth);
       } catch (err) {
         console.error('[Google Redirect Error]', err?.code, err?.message);
@@ -50,12 +62,11 @@ export function AuthProvider({ children }) {
           setUser(fbUser || null);
           setLoading(false);
 
-          // 🚀 Redirección fuerte post-auth si dejamos una intención guardada
+          // Si venimos de un flujo post-auth, aplica la redirección hash
           if (fbUser) {
-            const target = consumePostAuthRedirect();
-            if (target) {
-              // replace evita que el usuario “regrese” al callback de Google con back
-              window.location.replace(target);
+            const targetHash = consumePostAuthRedirectHash();
+            if (targetHash) {
+              goToHash(targetHash);
             }
           }
         });
@@ -67,22 +78,19 @@ export function AuthProvider({ children }) {
 
   // --- Registro con correo/contraseña ---
   async function register({ email, password, displayName }) {
-    setPostAuthRedirect(DEFAULT_REDIRECT);
+    setPostAuthRedirectHash(DASHBOARD_HASH);
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    if (displayName) {
-      await updateProfile(cred.user, { displayName });
-    }
-    // Fallback local (si no hay redirect flow)
-    try { window.location.assign(DEFAULT_REDIRECT); } catch {}
+    if (displayName) await updateProfile(cred.user, { displayName });
+    // Fallback inmediato (por si no se activa el listener aún)
+    goToHash(DASHBOARD_HASH);
     return cred.user;
   }
 
   // --- Login con correo/contraseña ---
   async function login({ email, password }) {
-    setPostAuthRedirect(DEFAULT_REDIRECT);
+    setPostAuthRedirectHash(DASHBOARD_HASH);
     const cred = await signInWithEmailAndPassword(auth, email, password);
-    // Fallback local
-    try { window.location.assign(DEFAULT_REDIRECT); } catch {}
+    goToHash(DASHBOARD_HASH);
     return cred.user;
   }
 
@@ -92,19 +100,18 @@ export function AuthProvider({ children }) {
       typeof window !== 'undefined' &&
       (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
 
-    setPostAuthRedirect(DEFAULT_REDIRECT);
+    setPostAuthRedirectHash(DASHBOARD_HASH);
 
     if (!isLocal) {
-      // En producción: redirect (más estable en Vercel)
+      // Producción: redirect (más estable) → al volver, el listener lee el hash guardado
       await signInWithRedirect(auth, googleProvider);
       return;
     }
 
-    // En local: intenta popup, cae a redirect si falla
+    // Local: intenta popup, cae a redirect si falla
     try {
       const cred = await signInWithPopup(auth, googleProvider);
-      // Fallback local por si no hay redirect
-      try { window.location.assign(DEFAULT_REDIRECT); } catch {}
+      goToHash(DASHBOARD_HASH);
       return cred.user;
     } catch (err) {
       console.error('[Google Popup Error]', err?.code, err?.message);
@@ -125,7 +132,7 @@ export function AuthProvider({ children }) {
   // --- Logout ---
   async function logout() {
     await signOut(auth);
-    try { window.location.assign('/'); } catch {}
+    goToHash(HOME_HASH); // vuelve siempre a la landing con hash
   }
 
   const value = useMemo(
