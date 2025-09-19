@@ -13,6 +13,24 @@ import {
 } from 'firebase/auth';
 
 const AuthContext = createContext(null);
+const POST_AUTH_KEY = 'postAuthRedirect';
+const DEFAULT_REDIRECT = '/dashboard';
+
+function setPostAuthRedirect(path = DEFAULT_REDIRECT) {
+  try {
+    sessionStorage.setItem(POST_AUTH_KEY, path);
+  } catch {}
+}
+
+function consumePostAuthRedirect() {
+  try {
+    const v = sessionStorage.getItem(POST_AUTH_KEY);
+    if (v) sessionStorage.removeItem(POST_AUTH_KEY);
+    return v;
+  } catch {
+    return null;
+  }
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -23,14 +41,23 @@ export function AuthProvider({ children }) {
 
     (async () => {
       try {
+        // Si venimos de signInWithRedirect, resuélvelo (ignora si no aplica)
         await getRedirectResult(auth);
-        // si hubo redirect, Firebase dará el user en onAuthStateChanged
       } catch (err) {
         console.error('[Google Redirect Error]', err?.code, err?.message);
       } finally {
         unsub = onAuthStateChanged(auth, (fbUser) => {
           setUser(fbUser || null);
           setLoading(false);
+
+          // 🚀 Redirección fuerte post-auth si dejamos una intención guardada
+          if (fbUser) {
+            const target = consumePostAuthRedirect();
+            if (target) {
+              // replace evita que el usuario “regrese” al callback de Google con back
+              window.location.replace(target);
+            }
+          }
         });
       }
     })();
@@ -40,20 +67,22 @@ export function AuthProvider({ children }) {
 
   // --- Registro con correo/contraseña ---
   async function register({ email, password, displayName }) {
+    setPostAuthRedirect(DEFAULT_REDIRECT);
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     if (displayName) {
       await updateProfile(cred.user, { displayName });
     }
-    // 👇 fallback fuerte
-    window.location.assign('/dashboard');
+    // Fallback local (si no hay redirect flow)
+    try { window.location.assign(DEFAULT_REDIRECT); } catch {}
     return cred.user;
   }
 
   // --- Login con correo/contraseña ---
   async function login({ email, password }) {
+    setPostAuthRedirect(DEFAULT_REDIRECT);
     const cred = await signInWithEmailAndPassword(auth, email, password);
-    // 👇 fallback fuerte
-    window.location.assign('/dashboard');
+    // Fallback local
+    try { window.location.assign(DEFAULT_REDIRECT); } catch {}
     return cred.user;
   }
 
@@ -63,16 +92,19 @@ export function AuthProvider({ children }) {
       typeof window !== 'undefined' &&
       (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
 
+    setPostAuthRedirect(DEFAULT_REDIRECT);
+
     if (!isLocal) {
-      // en producción: redirect
+      // En producción: redirect (más estable en Vercel)
       await signInWithRedirect(auth, googleProvider);
       return;
     }
 
+    // En local: intenta popup, cae a redirect si falla
     try {
       const cred = await signInWithPopup(auth, googleProvider);
-      // 👇 fallback fuerte
-      window.location.assign('/dashboard');
+      // Fallback local por si no hay redirect
+      try { window.location.assign(DEFAULT_REDIRECT); } catch {}
       return cred.user;
     } catch (err) {
       console.error('[Google Popup Error]', err?.code, err?.message);
@@ -93,8 +125,7 @@ export function AuthProvider({ children }) {
   // --- Logout ---
   async function logout() {
     await signOut(auth);
-    // 👇 manda directo al home
-    window.location.assign('/');
+    try { window.location.assign('/'); } catch {}
   }
 
   const value = useMemo(
