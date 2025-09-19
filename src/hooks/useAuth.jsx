@@ -19,25 +19,26 @@ export function AuthProvider({ children }) {
   const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Resuelve el posible resultado del redirect (en prod)
-    getRedirectResult(auth).catch((err) => {
-      console.error('[Google Redirect Error]', err?.code, err?.message);
-    });
+    getRedirectResult(auth)
+      .then((res) => {
+        if (res?.user) {
+          console.info('[Google Redirect OK]', res.user.uid);
+        }
+      })
+      .catch((err) => {
+        console.error('[Google Redirect Error]', err?.code, err?.message);
+      });
 
-    // Listener de sesión
     const unsub = onAuthStateChanged(auth, (fbUser) => {
       setUser(fbUser || null);
       setLoading(false);
     });
-
     return () => unsub();
   }, []);
 
   async function register({ email, password, displayName }) {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
-    if (displayName) {
-      await updateProfile(cred.user, { displayName });
-    }
+    if (displayName) await updateProfile(cred.user, { displayName });
     return cred.user;
   }
 
@@ -52,28 +53,16 @@ export function AuthProvider({ children }) {
       (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
 
     if (!isLocal) {
-      // Producción: redirect (más confiable)
-      await signInWithRedirect(auth, googleProvider);
+      await signInWithRedirect(auth, googleProvider); // prod
       return;
     }
 
-    // Local: intenta popup; si falla, cae a redirect
     try {
-      const cred = await signInWithPopup(auth, googleProvider);
+      const cred = await signInWithPopup(auth, googleProvider); // dev
       return cred.user;
     } catch (err) {
       console.error('[Google Popup Error]', err?.code, err?.message);
-      const fallbackCodes = new Set([
-        'auth/popup-blocked',
-        'auth/popup-closed-by-user',
-        'auth/cancelled-popup-request',
-        'auth/operation-not-supported-in-this-environment',
-      ]);
-      if (fallbackCodes.has(err?.code)) {
-        await signInWithRedirect(auth, googleProvider);
-        return;
-      }
-      throw err;
+      await signInWithRedirect(auth, googleProvider);
     }
   }
 
