@@ -31,9 +31,9 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop completamente transparente para ver el contenido de la landing */}
+      {/* Backdrop opaco para oscurecer el contenido fuera del modal */}
       <div 
-        className="fixed inset-0 bg-transparent transition-all duration-300"
+        className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-all duration-300"
         onClick={onClose}
       />
       
