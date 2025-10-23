@@ -116,7 +116,7 @@ const LoginForm = ({ onSwitchToRegister = () => {} }) => {
       <link href="https://fonts.googleapis.com/css2?family=Satoshi:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       
       <div className="w-full max-w-md mx-auto">
-        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 lg:p-10 border border-white/30">
+        <div className="bg-transparent p-4">
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <div className="bg-gradient-to-br from-gray-50 to-white p-6 rounded-2xl shadow-md border border-gray-200">

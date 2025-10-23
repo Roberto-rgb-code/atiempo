@@ -31,21 +31,21 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop más transparente */}
+      {/* Backdrop muy transparente para ver el fondo */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-20 backdrop-blur-sm transition-all duration-300"
+        className="fixed inset-0 bg-black bg-opacity-10 backdrop-blur-sm transition-all duration-300"
         onClick={onClose}
       />
       
-      {/* Modal con mejor integración visual */}
+      {/* Modal con fondo más transparente */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className={`relative bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 ${sizes[size]} w-full transform transition-all duration-300 scale-100`}>
+        <div className={`relative bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/30 ${sizes[size]} w-full transform transition-all duration-300 scale-100`}>
           {/* Header con mejor diseño */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200/50">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200/30">
             <h3 className="text-xl font-bold text-gray-900" style={{ fontFamily: 'Manrope, sans-serif' }}>{title}</h3>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100/50"
             >
               <X size={24} />
             </button>
