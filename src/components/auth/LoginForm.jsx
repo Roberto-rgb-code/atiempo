@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 // Componente Button
 const Button = ({ children, onClick, type = "button", variant = "primary", size = "md", className = "", disabled = false }) => {
@@ -63,7 +65,9 @@ const Input = ({ label, type = "text", name, icon, value, onChange, placeholder,
   );
 };
 
-const LoginForm = ({ onSwitchToRegister = () => {}, useAuth, useNavigate }) => {
+const LoginForm = ({ onSwitchToRegister = () => {} }) => {
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -95,14 +99,11 @@ const LoginForm = ({ onSwitchToRegister = () => {}, useAuth, useNavigate }) => {
 
     setIsSubmitting(true);
     try {
-      // Simular login
-      console.log('Iniciando sesión:', formData);
-      // await login({ email: formData.email, password: formData.password });
-      // navigate('/dashboard');
-      alert('Sesión iniciada exitosamente (simulado)');
+      await login({ email: formData.email, password: formData.password });
+      navigate('/dashboard');
     } catch (error) {
       console.error(error);
-      setErrors({ general: 'Error al iniciar sesión' });
+      setErrors({ general: 'Error al iniciar sesión. Verifica tus credenciales.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -115,7 +116,7 @@ const LoginForm = ({ onSwitchToRegister = () => {}, useAuth, useNavigate }) => {
       <link href="https://fonts.googleapis.com/css2?family=Satoshi:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       
       <div className="w-full max-w-md mx-auto">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 lg:p-10 border border-gray-200">
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 lg:p-10 border border-white/30">
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <div className="bg-gradient-to-br from-gray-50 to-white p-6 rounded-2xl shadow-md border border-gray-200">

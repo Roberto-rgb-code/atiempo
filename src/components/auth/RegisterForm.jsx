@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, Mail, User, Building, Lock } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 // Componente Button
 const Button = ({ children, onClick, type = "button", variant = "primary", size = "md", className = "", disabled = false }) => {
@@ -63,7 +65,9 @@ const Input = ({ label, type = "text", name, icon, value, onChange, placeholder,
   );
 };
 
-const RegisterForm = ({ onSwitchToLogin = () => {}, useAuth, useNavigate }) => {
+const RegisterForm = ({ onSwitchToLogin = () => {} }) => {
+  const { register } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -108,14 +112,15 @@ const RegisterForm = ({ onSwitchToLogin = () => {}, useAuth, useNavigate }) => {
 
     setIsSubmitting(true);
     try {
-      // Simular registro
-      console.log('Registrando usuario:', formData);
-      // await register({ email: formData.email, password: formData.password, displayName: formData.name });
-      // navigate('/dashboard');
-      alert('Cuenta creada exitosamente (simulado)');
+      await register({ 
+        email: formData.email, 
+        password: formData.password, 
+        displayName: formData.name 
+      });
+      navigate('/dashboard');
     } catch (error) {
       console.error(error);
-      setErrors({ general: 'Error al registrarse' });
+      setErrors({ general: 'Error al registrarse. El email ya existe o hay un problema con la conexión.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -128,7 +133,7 @@ const RegisterForm = ({ onSwitchToLogin = () => {}, useAuth, useNavigate }) => {
       <link href="https://fonts.googleapis.com/css2?family=Satoshi:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       
       <div className="w-full max-w-md mx-auto">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 lg:p-10 border border-gray-200">
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 lg:p-10 border border-white/30">
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <div className="bg-gradient-to-br from-gray-50 to-white p-6 rounded-2xl shadow-md border border-gray-200">
