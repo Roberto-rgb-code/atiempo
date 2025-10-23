@@ -128,6 +128,7 @@ const FeaturesSection = () => {
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                   <button 
+                    onClick={() => window.open('mailto:angelrmz@atiempo.mx?subject=Solicitud de Demo - A Tiempo', '_blank')}
                     className="group inline-flex items-center bg-[#D8F9A0] text-black px-8 py-4 rounded-xl font-bold hover:bg-[#c9ea8f] transition-all duration-300 shadow-lg hover:shadow-xl"
                     style={{ fontFamily: 'Satoshi, sans-serif' }}
                   >
@@ -136,6 +137,7 @@ const FeaturesSection = () => {
                   </button>
                   
                   <button 
+                    onClick={() => document.getElementById('contacto').scrollIntoView({ behavior: 'smooth' })}
                     className="inline-flex items-center border-2 border-white text-white px-8 py-4 rounded-xl font-bold hover:bg-white hover:text-black transition-all duration-300"
                     style={{ fontFamily: 'Satoshi, sans-serif' }}
                   >

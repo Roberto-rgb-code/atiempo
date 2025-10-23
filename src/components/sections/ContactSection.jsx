@@ -65,11 +65,27 @@ const ContactSection = () => {
     });
   };
 
-  const handleSubmit = () => {
-    if (!formData.name || !formData.email || !formData.message) {
-      alert('Por favor completa todos los campos requeridos');
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    // Validación mejorada
+    if (!formData.name.trim()) {
+      alert('El nombre es requerido');
       return;
     }
+    if (!formData.email.trim()) {
+      alert('El email es requerido');
+      return;
+    }
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      alert('Por favor ingresa un email válido');
+      return;
+    }
+    if (!formData.message.trim()) {
+      alert('El mensaje es requerido');
+      return;
+    }
+    
     console.log('Formulario enviado:', formData);
     alert('Mensaje enviado correctamente. Te contactaremos pronto.');
     setFormData({ name: '', email: '', company: '', message: '' });
@@ -113,6 +129,7 @@ const ContactSection = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button
+                onClick={() => window.open('https://wa.me/523334087070?text=Hola, me interesa conocer más sobre A Tiempo', '_blank')}
                 variant="primary"
                 size="xl"
                 className="group shadow-xl"
@@ -123,6 +140,7 @@ const ContactSection = () => {
               </Button>
               
               <Button
+                onClick={() => window.open('mailto:angelrmz@atiempo.mx?subject=Agendar Demo Gratuita - A Tiempo', '_blank')}
                 variant="outline"
                 size="xl"
               >
@@ -343,15 +361,17 @@ const ContactSection = () => {
                   />
                 </div>
 
-                <Button
-                  onClick={handleSubmit}
-                  variant="primary"
-                  size="lg"
-                  className="w-full group shadow-lg"
-                >
-                  Enviar mensaje
-                  <Send size={20} className="ml-2 group-hover:translate-x-1 group-hover:rotate-12 transition-transform" />
-                </Button>
+                <form onSubmit={handleSubmit}>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="lg"
+                    className="w-full group shadow-lg"
+                  >
+                    Enviar mensaje
+                    <Send size={20} className="ml-2 group-hover:translate-x-1 group-hover:rotate-12 transition-transform" />
+                  </Button>
+                </form>
 
                 <p className="text-xs text-center text-gray-500 mt-4" style={{ fontFamily: 'Satoshi, sans-serif' }}>
                   Al enviar este formulario, aceptas nuestra política de privacidad y tratamiento de datos.

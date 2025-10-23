@@ -228,7 +228,11 @@ const HeroSection = ({ onShowAuth = () => {} }) => {
                   Comenzar ahora
                   <ArrowRight size={28} className="ml-3 group-hover:translate-x-2 transition-transform duration-300" />
                 </Button>
-                <Button variant="outline" size="xl">
+                <Button 
+                  variant="outline" 
+                  size="xl"
+                  onClick={() => window.open('mailto:angelrmz@atiempo.mx?subject=Solicitud de Demo - A Tiempo', '_blank')}
+                >
                   Ver demo
                 </Button>
               </div>
