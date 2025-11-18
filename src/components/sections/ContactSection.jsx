@@ -50,7 +50,7 @@ const Input = ({ label, type = "text", name, value, onChange, placeholder, requi
   );
 };
 
-const ContactSection = () => {
+const ContactSection = ({ onShowDemo = () => {} }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -140,7 +140,7 @@ const ContactSection = () => {
               </Button>
               
               <Button
-                onClick={() => window.open('mailto:angelrmz@atiempo.mx?subject=Agendar Demo Gratuita - A Tiempo', '_blank')}
+                onClick={onShowDemo}
                 variant="outline"
                 size="xl"
               >

@@ -22,6 +22,7 @@ import Modal from './components/ui/Modal';
 // Formularios (se usan dentro del modal)
 import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
+import DemoForm from './components/forms/DemoForm';
 
 // Páginas dedicadas
 import LoginPage from './pages/LoginPage';
@@ -32,14 +33,14 @@ import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './routes/ProtectedRoute';
 import PublicOnlyRoute from './routes/PublicOnlyRoute';
 
-function Home({ onShowAuth }) {
+function Home({ onShowAuth, onShowDemo }) {
   return (
     <>
-      <HeroSection onShowAuth={onShowAuth} />
+      <HeroSection onShowAuth={onShowAuth} onShowDemo={onShowDemo} />
       <AboutSection />
-      <FeaturesSection />
+      <FeaturesSection onShowDemo={onShowDemo} />
       <PricingSection onShowAuth={onShowAuth} />
-      <ContactSection />
+      <ContactSection onShowDemo={onShowDemo} />
     </>
   );
 }
@@ -50,11 +51,13 @@ export default function App() {
 
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
+  const [showDemoModal, setShowDemoModal] = useState(false);
 
   // 🔑 Cuando cambia la ruta, si estamos en dashboard, cierra el modal
   useEffect(() => {
     if (location.pathname === '/dashboard') {
       setShowAuthModal(false);
+      setShowDemoModal(false);
     }
   }, [location.pathname]);
 
@@ -64,6 +67,12 @@ export default function App() {
   };
 
   const handleCloseAuth = () => setShowAuthModal(false);
+
+  const handleShowDemo = () => {
+    setShowDemoModal(true);
+  };
+
+  const handleCloseDemo = () => setShowDemoModal(false);
 
   const switchToLogin = () => setAuthMode('login');
   const switchToRegister = () => setAuthMode('register');
@@ -94,7 +103,7 @@ export default function App() {
         <Routes>
           {/* Rutas públicas */}
           <Route element={<PublicOnlyRoute />}>
-            <Route path="/" element={<Home onShowAuth={handleShowAuth} />} />
+            <Route path="/" element={<Home onShowAuth={handleShowAuth} onShowDemo={handleShowDemo} />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
           </Route>
@@ -124,6 +133,16 @@ export default function App() {
         ) : (
           <RegisterForm onSwitchToLogin={switchToLogin} />
         )}
+      </Modal>
+
+      {/* Modal de solicitar demo */}
+      <Modal
+        isOpen={showDemoModal}
+        onClose={handleCloseDemo}
+        title="Solicitar Demo"
+        size="md"
+      >
+        <DemoForm onClose={handleCloseDemo} />
       </Modal>
     </div>
   );

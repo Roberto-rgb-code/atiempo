@@ -175,7 +175,7 @@ const Button = ({ children, onClick, variant = "primary", size = "md", className
 };
 
 // Componente Principal Hero Section
-const HeroSection = ({ onShowAuth = () => {} }) => {
+const HeroSection = ({ onShowAuth = () => {}, onShowDemo = () => {} }) => {
   return (
     <>
       {/* Importar fuentes de Google Fonts */}
@@ -231,7 +231,7 @@ const HeroSection = ({ onShowAuth = () => {} }) => {
                 <Button 
                   variant="outline" 
                   size="xl"
-                  onClick={() => window.open('mailto:angelrmz@atiempo.mx?subject=Solicitud de Demo - A Tiempo', '_blank')}
+                  onClick={onShowDemo}
                 >
                   Ver demo
                 </Button>

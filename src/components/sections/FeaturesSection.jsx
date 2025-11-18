@@ -1,7 +1,7 @@
 import React from 'react';
 import { Zap, Shield, Users, Clock, FileText, Brain, ArrowRight } from 'lucide-react';
 
-const FeaturesSection = () => {
+const FeaturesSection = ({ onShowDemo = () => {} }) => {
   const features = [
     {
       icon: Zap,
@@ -128,7 +128,7 @@ const FeaturesSection = () => {
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                   <button 
-                    onClick={() => window.open('mailto:angelrmz@atiempo.mx?subject=Solicitud de Demo - A Tiempo', '_blank')}
+                    onClick={onShowDemo}
                     className="group inline-flex items-center bg-[#D8F9A0] text-black px-8 py-4 rounded-xl font-bold hover:bg-[#c9ea8f] transition-all duration-300 shadow-lg hover:shadow-xl"
                     style={{ fontFamily: 'Satoshi, sans-serif' }}
                   >
