@@ -144,34 +144,6 @@ const FeaturesSection = () => {
                     Conocer más
                   </button>
                 </div>
-
-                {/* Stats mini */}
-                <div className="grid grid-cols-3 gap-8 mt-12 pt-12 border-t border-gray-800">
-                  <div className="text-center">
-                    <div className="text-3xl lg:text-4xl font-bold text-[#D8F9A0] mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                      85%
-                    </div>
-                    <div className="text-sm text-gray-400" style={{ fontFamily: 'Satoshi, sans-serif' }}>
-                      Reducción de tiempo
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl lg:text-4xl font-bold text-[#D8F9A0] mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                      500+
-                    </div>
-                    <div className="text-sm text-gray-400" style={{ fontFamily: 'Satoshi, sans-serif' }}>
-                      Clientes satisfechos
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl lg:text-4xl font-bold text-[#D8F9A0] mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                      99.9%
-                    </div>
-                    <div className="text-sm text-gray-400" style={{ fontFamily: 'Satoshi, sans-serif' }}>
-                      Uptime garantizado
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

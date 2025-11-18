@@ -252,22 +252,6 @@ const HeroSection = ({ onShowAuth = () => {} }) => {
                   <span className="font-semibold text-gray-800" style={{ fontFamily: 'Satoshi, sans-serif' }}>Colaborativo</span>
                 </div>
               </div>
-              
-              {/* Estadísticas mejoradas */}
-              <div className="grid grid-cols-3 gap-8 pt-12 border-t border-gray-200">
-                <div className="text-center lg:text-left">
-                  <div className="text-4xl lg:text-6xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>85%</div>
-                  <div className="text-lg text-gray-600 font-medium" style={{ fontFamily: 'Satoshi, sans-serif' }}>Tiempo ahorrado</div>
-                </div>
-                <div className="text-center lg:text-left">
-                  <div className="text-4xl lg:text-6xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>20+</div>
-                  <div className="text-lg text-gray-600 font-medium" style={{ fontFamily: 'Satoshi, sans-serif' }}>Notarías confían</div>
-                </div>
-                <div className="text-center lg:text-left">
-                  <div className="text-4xl lg:text-6xl font-bold text-gray-900 mb-2" style={{ fontFamily: 'Manrope, sans-serif' }}>24/7</div>
-                  <div className="text-lg text-gray-600 font-medium" style={{ fontFamily: 'Satoshi, sans-serif' }}>Soporte técnico</div>
-                </div>
-              </div>
             </div>
             
             {/* Área de animación mejorada con reloj de arena */}
