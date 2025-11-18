@@ -101,6 +101,44 @@ const PricingSection = ({ onShowAuth = () => {} }) => {
     { name: 'Portada', price: 70 }
   ];
 
+  // Función para generar mensaje personalizado de WhatsApp según el plan
+  const handlePlanClick = (plan) => {
+    const currentPrice = billingCycle === 'monthly' ? plan.priceMonthly : plan.priceAnnual;
+    const displayPeriod = billingCycle === 'monthly' ? plan.period : 'año';
+    const periodText = displayPeriod ? `/${displayPeriod}` : '';
+    const ivaText = plan.showIVA ? ' + IVA' : '';
+    const facturacionText = billingCycle === 'monthly' ? 'mensual' : 'anual';
+    
+    // Si es el plan gratuito, abrir modal de registro
+    if (plan.name === 'Bamboo - Gratuita') {
+      onShowAuth('register');
+      return;
+    }
+
+    // Crear mensaje personalizado para WhatsApp
+    const mensaje = `¡Hola! Me interesa el plan *${plan.name}* de A Tiempo.
+
+💰 *Información del Plan:*
+• Plan: ${plan.name}
+• Precio: ${currentPrice}${periodText}${ivaText}
+• Facturación: ${facturacionText}
+• Descripción: ${plan.description}
+
+✨ *Características incluidas:*
+${plan.features.map(feature => `• ${feature}`).join('\n')}
+
+${billingCycle === 'annual' && plan.savingsAnnual ? `\n💵 *Ahorro anual:* ${plan.savingsAnnual}` : ''}
+
+Me gustaría obtener más información y proceder con la contratación.`;
+
+    // Codificar el mensaje para URL
+    const mensajeCodificado = encodeURIComponent(mensaje);
+    
+    // Abrir WhatsApp con el mensaje
+    const whatsappUrl = `https://wa.me/523334087070?text=${mensajeCodificado}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
   return (
     <>
       {/* Importar fuentes */}
@@ -252,9 +290,7 @@ const PricingSection = ({ onShowAuth = () => {} }) => {
                   </ul>
 
                   <Button
-                    onClick={() =>
-                      onShowAuth(plan.name === 'Bamboo - Gratuita' ? 'register' : 'register')
-                    }
+                    onClick={() => handlePlanClick(plan)}
                     variant={plan.popular ? 'accent' : 'outline'}
                     size="lg"
                     className="w-full"
