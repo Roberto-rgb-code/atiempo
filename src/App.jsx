@@ -27,7 +27,7 @@ import DemoForm from './components/forms/DemoForm';
 // Páginas dedicadas
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import Dashboard from './pages/Dashboard';
+import MainApp from './pages/MainApp';
 
 // Rutas con guardas
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -90,14 +90,18 @@ export default function App() {
     await logout();
   };
 
+  const isDashboard = location.pathname === '/dashboard';
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <Navbar
-        isLoggedIn={isLoggedIn}
-        currentUser={currentUser}
-        onShowAuth={handleShowAuth}
-        onLogout={handleLogout}
-      />
+      {!isDashboard && (
+        <Navbar
+          isLoggedIn={isLoggedIn}
+          currentUser={currentUser}
+          onShowAuth={handleShowAuth}
+          onLogout={handleLogout}
+        />
+      )}
 
       <div className="flex-1">
         <Routes>
@@ -110,7 +114,7 @@ export default function App() {
 
           {/* Rutas privadas */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<MainApp />} />
           </Route>
 
           {/* Fallback */}
@@ -118,7 +122,7 @@ export default function App() {
         </Routes>
       </div>
 
-      <Footer />
+      {!isDashboard && <Footer />}
       <WhatsAppWidget />
 
       {/* Modal de autenticación */}
